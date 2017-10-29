@@ -1,4 +1,4 @@
-# Testing Results:
+Testing Results:
 
 w4118@w4118:~/hmwk1/shell$ ./w4118_sh 
 $    
