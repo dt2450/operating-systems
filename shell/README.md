@@ -3,6 +3,7 @@
 This is the readme file for Devashi's shell. 
 
 Please remember to add path using special command 'path', before trying to run any shell commands.
+Update: The version 2.4 doesn't require you to specify the path since the path is IMPORTED from $PATH env variable. However, you can still use the path command to modify it. The shell doesn't work on env variables though. So modifying $PATH within this shell won't affect the directories listed by path command. Only operations via path command are permitted to modify the directories listed.
 
 # Notes:
 
@@ -79,3 +80,5 @@ Please remember to add path using special command 'path', before trying to run a
 10. int main(int argc, char **argv)
     This is the main function of the shell which runs an infinite while loop looking for more commands in the command line.    The process terminates only on exit command
     otherwise it displays a prompt to the user, waiting for the next set of inputs.    
+11. void populate_path_from_env()
+   This function imports the directories listed in $PATH env variable on the original shell from which this shell is launched.    However, the import is done only once and during launch of shell only. In order to manage the list, path command needs to      be used, as earlier.
