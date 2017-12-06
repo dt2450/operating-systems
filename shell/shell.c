@@ -18,6 +18,8 @@ struct path_node {
 const unsigned int special_cmds_num = 3;
 char *special_cmds[] = {"exit", "cd", "path"};
 struct path_node *path_head = NULL;
+struct path_node *path_tail = NULL;
+
 
 /* this function maintains its own character buffer
 * which can expand in increments of BUFFER_INCR_SIZE
@@ -220,7 +222,7 @@ int parse_args(char **arguments)
 		}
 		if (last_argument)
 			break;
-	} while ((current_char = getchar()) != EOF);
+	} while ((current_char = getchar()) != (unsigned char)EOF);
 
 	if (previous_char == 255) {
 		printf("error: unexpected end of file\n");
@@ -243,10 +245,10 @@ error:
 		}
 	}
 	/* flush rest of the input */
-	if (previous_char != '\n' && previous_char != EOF &&
+	if (previous_char != '\n' && previous_char != (unsigned char)EOF &&
 			previous_char != 255) {
 		while ((current_char = getchar()) != '\n'
-				&& current_char != EOF)
+				&& current_char != (unsigned char)EOF)
 			;
 	}
 	/* return error */
@@ -267,10 +269,45 @@ void print_path(void)
 	printf("\n");
 }
 
+void populate_path_from_env() {
+    char *path_list = strdup(getenv("PATH"));
+    char *delim = ":";
+    char *dir = strtok(path_list, delim);
+
+    while(dir != NULL) {
+        struct path_node *temp_node = NULL;
+        /* verify the directory exists */
+        if (access(dir, F_OK) != 0) {
+            //ignore this dir
+            dir = strtok(NULL, delim);
+            continue;
+        }
+        /* add the specified directory
+         * to the path list */
+        temp_node = (struct path_node *)
+            malloc(sizeof(struct path_node));
+        if (temp_node == NULL) {
+            printf("error: %s\n", strerror(errno));
+            return;
+        } else {
+            temp_node->next = NULL;
+            temp_node->path_dir = strdup(dir);
+            if (path_head == NULL) {
+                path_head = temp_node;
+                path_tail = path_head;
+            } else {
+                path_tail->next = temp_node;
+                path_tail = temp_node;
+            }
+        }
+        dir = strtok(NULL, delim);
+    }
+    free(path_list);
+    return;
+}
+
 void process_path_cmd(char **arguments)
 {
-	static struct path_node *path_tail;
-
 	if (strcmp(arguments[1], "+") == 0) {
 		struct path_node *temp_node = NULL;
 		/* verify the directory exists */
@@ -667,6 +704,8 @@ int main(int argc, char **argv)
 		printf("error: The shell doesn't expect any arguments\n");
 		return -1;
 	}
+        
+        populate_path_from_env();
 
 	while (1) {
 		/* run this loop forever to keep processing commands
@@ -678,7 +717,7 @@ int main(int argc, char **argv)
 		int i = 0;
 
 		/* display prompt */
-		printf("dtshell-2.3$");
+		printf("dtshell-2.4$");
 
 		arg_num = parse_args(args_list);
 
